@@ -1,6 +1,6 @@
 # odyssey
 
-> A Vue.js project
+> A Vue.js project for test, it is like china chess, ohe, maybe not like... 
 
 ## Build Setup
 

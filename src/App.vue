@@ -31,5 +31,18 @@ body {
   user-select: none;
   margin: 0;
   padding: 0;
+  align-items: center;
+  position:relative;
+  min-width: 1000px;
+  max-height: 713px;
+  height: 600px;
+  background-image: url("./assets/images/ink.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+  background-size: cover;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -moz-background-size: cover;
 }
 </style>

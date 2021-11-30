@@ -1,65 +1,174 @@
 <template>
-  <div>
-    <div class="status" :class="nextCamp > 0 ? 'red': ''">{{nextCamp > 0 ? '红棋' : '黑棋'}}</div>
+  <div id="all">
+    <vue-canvas-nest
+      :config="config"
+      :el="'#all'"></vue-canvas-nest>
+    <div v-if="!state" class="loader">
+      <div class="loading">
+        <div class="circle"></div>
+      </div>
+      <div class="progress" v-html="this.value+'%'">0%</div>
+      <p class="load" v-if="loading">loading……</p>
+      <p class="load start" v-if="!loading" @click="run">开始游戏</p>
+    </div>
+    <div v-if="state" class="left">
+      <div class="board">
+        <div class="board-wrap">
+          <div class="pair blank-item"
+            :class="handleHighLight(item)"
+            :style="handlePosition(item.position)"
+            @click="clickPair(item)"
+            v-for="(item, index) in blankMap"
+            :key="'black' + index">
+          </div>
 
-    <div class="board">
-      <div class="board-wrap">
-        <div class="pair blank-item"
-          :class="handleHighLight(item)"
-          :style="handlePosition(item.position)"
-          @click="clickPair(item)"
-          v-for="(item, index) in blankMap"
-          :key="'black' + index">
-          <!-- {{item.position}} -->
-        </div>
-
-        <div class="pair"
-          :class="['black-' + item.name, handleHighLight(item)]"
-          :style="handlePosition(item.position)"
-          @click="clickPair(item)"
-          v-for="item in blackPairs"
-          :key="'black' + item.name">
-        </div>
-
-        <div class="pair"
-          :class="['red-' + item.name, handleHighLight(item)]"
-          :style="handlePosition(item.position)"
-          @click="clickPair(item)"
-          v-for="item in redPairs"
-          :key="'red' + item.name">
+          <div class="pair"
+            :class="['black-' + item.name, handleHighLight(item)]"
+            :style="handlePosition(item.position)"
+            @click="clickPair(item)"
+            v-for="item in blackPairs"
+            :key="'black' + item.name">
+          </div>
+          <div v-if="state" class="status" :class="nextCamp > 0 ? 'red': ''">{{nextCamp > 0 ? '红棋' : '黑棋'}}</div>
+          <div class="pair"
+            :class="['red-' + item.name, handleHighLight(item)]"
+            :style="handlePosition(item.position)"
+            @click="clickPair(item)"
+            v-for="item in redPairs"
+            :key="'red' + item.name">
+          </div>
         </div>
       </div>
     </div>
-
+    <div v-if="state" class="right" >
+      <div class="refresh" @click="begin">重新开始</div>
+      <div class="refresh" @click="showAlert1">暂停</div>
+      <div class="refresh" @click="Switch">音乐切换</div>
+      <lz-alert :visiable.sync="iShow1" :msg="iMsg" :left="iLeft" />
+    </div>
     <div v-if="over" class="success-panel">
       <div class="success-title">{{winCamp > 0 ? '红棋' : '黑棋'}}赢了！</div>
-      <div class="restart" @click="begin">再来一局</div>
+      <div class="restart" @click="begin();playAudio()">再来一局</div>
       <div class="restart back" @click="moreGame">更多游戏</div>
     </div>
   </div>
 </template>
-
 <script>
 import Game from '../game'
 import Rule from '../game/rule'
+import LzAlert from './LzAlert.vue'
+import vueCanvasNest from 'vue-canvas-nest'
 
 export default {
   data () {
     return {
       nextCamp: 1,
       winCamp: 0,
+      state: false,
+      loading: true,
       over: false,
       blankMap: [],
       redPairs: [],
       blackPairs: [],
       needMovePair: null,
-      highLightPoint: [] // 可移动的点，需要高亮
+      highLightPoint: [], // 可移动的点，需要高亮
+      iMsg: '游戏已经暂停！',
+      iLeft: 'OK!',
+      iShow1: false,
+      isplay: false,
+      index: null,
+      musics: [],
+      value: 0,
+      config: {
+        color: '255, 0, 0',
+        opacity: 1,
+        zIndex: 5,
+        count: 128
+      }
     }
   },
-  created () {
+  mounted: function () {
+    this.setTimer()
+  },
+  created: function () {
     this.begin()
+    this.setMusic()
+  },
+  destroyed: function () {
+    this.stopAudio()
+  },
+  components: {
+    LzAlert,
+    vueCanvasNest
   },
   methods: {
+    continuePlay () {
+      this.isplay = true
+      this.audio.play()
+    },
+    playAudio () {
+      this.isplay = true
+      this.audio = new Audio()
+      var index = Math.round(Math.random() * (this.musics.length - 1))
+      if (this.index !== index) {
+        this.audio.src = this.musics[index]
+        console.log('Playing music:', this.musics[index])
+        this.audio.play()
+        this.index = index
+      } else {
+        this.playAudio()
+      }
+    },
+    stopAudio () {
+      this.isplay = false
+      this.audio.pause()
+    },
+    Switch () {
+      clearTimeout(this.timer)
+      this.timer = null
+      if (this.isplay) {
+        this.stopAudio()
+        if (this.timer == null) {
+          this.timer = setTimeout(() => {
+            console.log('Changing the music.')
+            this.playAudio()
+          }, 1000)
+        }
+      }
+    },
+    setMusic () {
+      this.musics = require.context('../../static/music/', false, /.mp3$/).keys()
+      for (var i in this.musics) {
+        this.musics[i] = '../../static/music/' + this.musics[i]
+      }
+      console.log(this.musics)
+    },
+    setTimer () {
+      if (this.timer == null) {
+        this.timer = setInterval(() => {
+          this.value += Math.round(Math.random() * (10 - 1) + 1)
+          if (this.value >= 100) {
+            this.value = 100
+          }
+          if (this.value === 100) {
+            clearInterval(this.timer)
+            this.timer = null
+            console.log('loading=' + this.loading)
+            this.loading = false
+          }
+        }, 200)
+      }
+    },
+    run () {
+      this.state = true
+      clearTimeout(this.timer)
+      this.timer = null
+      this.playAudio()
+    },
+    showAlert1 () {
+      this.iShow1 = true
+      this.stopAudio()
+    },
     begin () {
       this.nextCamp = this.winCamp ? -this.winCamp : 1
       this.winCamp = 0
@@ -68,6 +177,7 @@ export default {
       this.blankMap = Game.getBlankMap()
       this.blackPairs = Game.getBlackPairs()
       this.redPairs = Game.getRedPairs()
+      this.highLightPoint = []
     },
     moreGame () {
       window.location.href = '#'
@@ -75,6 +185,7 @@ export default {
     gameOver (camp) {
       this.winCamp = camp
       this.over = true
+      this.stopAudio()
     },
     clickPair (pair) {
       if (this.needMovePair && this.needMovePair.camp !== pair.camp) {
@@ -155,29 +266,80 @@ export default {
 </script>
 
 <style scoped>
-.status {
+#all{
+  padding-top: 1%;
+  position:absolute;
+  width: 100%;
+  min-height: 713px;
+}
+.loader{
+  width:100%;
+}
+
+.loading {
+  width:180px;
+  height:180px;
+  background-image: linear-gradient(#c0c0c0, rgb(0, 0, 0)) ;
+  border-radius:50%;
+  text-align:center;
+  padding:20px;
+  font-size:28px;
+  border-radius: 50%;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+  margin:10% auto 10%;
+  box-sizing:border-box;
+}
+.loading .circle{
+  width:100%;
+  height:100%;
+  background:rgb(204, 201, 201);
+  border-radius:50%;
+}
+.load{
+  width: 15%;
+  margin-top: 1%;
+  margin-left: 42.4%;
+}
+.start{
+  cursor:pointer;
+}
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.load,.status {
   font-size: 0.4rem;
   font-weight: 600;
   text-align: center;
-  padding-top: 0.2rem;
+}
+.status{
+  width: 20%;
+  position:relative;
+  top: 45%;
+  left: 39.5%;
+  z-index:0;
 }
 .status.red {
   color: #b82a2a;
 }
 .board {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  z-index:-2;
   width: 7rem;
-  height: 7.12rem;
+  min-width: 7rem;
+  max-width: 7rem;
+  height: 7rem;
   background-image: url('../assets/images/board.png');
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-position: center;
   box-shadow: 0.15rem 0.10rem 0.20rem #888888;
+  float: right;
 }
-
 .board-wrap {
   position: relative;
   left: 0.84rem;
@@ -185,7 +347,6 @@ export default {
   height: 6.2rem;
   width: 5.4rem;
 }
-
 .pair {
   position: absolute;
   width: 0.68rem;
@@ -193,15 +354,17 @@ export default {
   background-position: center;
   background-size: 100% 100%;
   transition: all 0.3s;
+  z-index:1;
+  margin-left: 0.01rem;
+  margin-bottom: 0.04rem;
 }
-
 .blank-item {
-  font-size: 0.12rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 100%;
-  /* background-color: rgba(100, 100, 100, 0.5); */
+  margin-left: -0.01rem;
+  margin-bottom: 0.07rem;
 }
 
 /* 黑棋 */
@@ -288,12 +451,11 @@ export default {
 }
 .success-panel {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  height: 100%;
+  width: 100%;
   background-color: rgba(0, 0, 0, .5);
   z-index: 1000;
+  margin-top:-1%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -306,10 +468,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 10px;
+  padding-left: 20px;
+  margin-left: 46px;
 }
 .restart {
-  margin: 20px auto 0;
+  margin-left: 45px;
+  margin-top: 15px;
   width: 120px;
   height: 40px;
   color: #fff;
@@ -319,5 +483,37 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.refresh {
+  width: 29%;
+  height: 30%;
+  color: #fff;
+  font-size: 18px;
+  border-radius: 20px;
+  background-color: #891e91;
+  float: left;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 1%;
+  margin-left: 4%;
+}
+.left{
+  width: 74%;
+  float: left;
+  min-height: 7rem;
+  position: relative;
+}
+.right{
+  min-height: 7rem;
+  width: 25%;
+  float: right;
+}
+.progress {
+  font-weight: 700;
+  font-size: 0.4rem;
+  text-align: center;
+  width: 8%;
+  margin-left: 46%;
+  margin-top: -8%;
 }
 </style>

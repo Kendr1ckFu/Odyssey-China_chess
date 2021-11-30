@@ -1,4 +1,4 @@
-# odyssey
+# Odyssey-China_chess
 
 > A Vue.js project for test, it is like china chess, ohe, maybe not like... 
 

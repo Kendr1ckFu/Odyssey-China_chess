@@ -11,19 +11,7 @@
     |-- package.json //模块版本
     |-- README.md //项目说明
     |-- build //项目构建(webpack)相关代码
-    |   |-- build.js
-    |   |-- check-versions.js
-    |   |-- logo.png
-    |   |-- utils.js
-    |   |-- vue-loader.conf.js
-    |   |-- webpack.base.conf.js
-    |   |-- webpack.dev.conf.js
-    |   |-- webpack.prod.conf.js
     |-- config //配置目录，包括端口号等
-    |   |-- dev.env.js
-    |   |-- index.js
-    |   |-- prod.env.js
-    |   |-- test.env.js
     |-- src //项目开发目录
     |   |-- App.vue //项目入口
     |   |-- main.js //项目核心文件
@@ -68,19 +56,6 @@
     |       |-- smmf.mp3
     |       |-- wcxf.mp3
     |-- test //测试目录
-        |-- e2e
-        |   |-- nightwatch.conf.js
-        |   |-- runner.js
-        |   |-- custom-assertions
-        |   |   |-- elementCount.js
-        |   |-- specs
-        |       |-- test.js
-        |-- unit
-            |-- .eslintrc
-            |-- jest.conf.js
-            |-- setup.js
-            |-- specs
-                |-- HelloWorld.spec.js
 ```
 
 ## Design Idea

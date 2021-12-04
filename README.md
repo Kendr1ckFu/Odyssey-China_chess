@@ -1,6 +1,6 @@
 # Odyssey-China_chess
 
-> A Vue.js project for demo, it is just a simple game like china chess, enjoy it!
+> A Vue.js project for demo, it is just a simple game like china chess, run dev and enjoy it!
 
 ## Project Directory
 

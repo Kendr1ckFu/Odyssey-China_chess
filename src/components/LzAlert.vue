@@ -1,4 +1,5 @@
 <template>
+  <!-- 暂停弹窗，点击恢复 -->
   <div class="wrapper" @click="cancelable && dismiss()" v-if="visiable">
     <div class="lz-dialog" ref="box" @click.stop="">
       <div v-if="msgData.title != null" class="lz-title">

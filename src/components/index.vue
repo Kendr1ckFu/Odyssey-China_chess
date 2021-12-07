@@ -3,11 +3,13 @@
     <vue-canvas-nest
       :config="config"
       :el="'#all'"></vue-canvas-nest>
+    <!-- 使用state变量控制加载界面的出现和消失 -->
     <div v-if="!state" class="loader">
       <div class="loading">
         <div class="circle"></div>
       </div>
       <div class="progress" v-html="this.value+'%'">0%</div>
+    <!-- 使用loading变量控制"开始游戏"的出现 -->
       <p class="load" v-if="loading">loading……</p>
       <p class="load start" v-if="!loading" @click="run">开始游戏</p>
     </div>
@@ -106,6 +108,8 @@ export default {
       this.isplay = true
       this.audio.play()
     },
+    // 执行函数递归，通过生成随机数并记录上一次的随机数，
+    // 以便在点击"开始游戏"后，做到随机播放音乐并在切换时与上一首不重合
     playAudio () {
       this.isplay = true
       this.audio = new Audio()
@@ -119,10 +123,14 @@ export default {
         this.playAudio()
       }
     },
+    // 使用this.audio.pause()，以便在恢复暂停后，能够保持暂停前的音乐播放状态
     stopAudio () {
       this.isplay = false
       this.audio.pause()
     },
+    // 清除之前的定时器，并生成一个新的定时器，
+    // 以控制在切换歌曲时，stopAudio ()与playAudio ()的执行有间隔，
+    // 避免播放时有多段音乐
     Switch () {
       clearTimeout(this.timer)
       this.timer = null
@@ -136,6 +144,7 @@ export default {
         }
       }
     },
+    // 读取"/static/music/"文件夹内存储的所有MP3格式的音频文件存入musics数组
     setMusic () {
       this.musics = require.context('../../static/music/', false, /.mp3$/).keys()
       for (var i in this.musics) {
@@ -143,6 +152,7 @@ export default {
       }
       console.log(this.musics)
     },
+    // 使用定时器和随机数控制加载进度以完成伪加载，并提供"开始游戏"的入口
     setTimer () {
       if (this.timer == null) {
         this.timer = setInterval(() => {
@@ -169,6 +179,7 @@ export default {
       this.iShow1 = true
       this.stopAudio()
     },
+    //回溯初始状态
     begin () {
       this.nextCamp = this.winCamp ? -this.winCamp : 1
       this.winCamp = 0
